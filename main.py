@@ -9,6 +9,7 @@ import asyncio
 import http.server
 import socketserver
 import re
+import threading
 ADD_TASK, ADD_TASK_PROOF = range(2)
 
 load_dotenv()
@@ -410,7 +411,9 @@ async def subscribed(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
-
+    if update.message is None:
+        # Handle case where there's no message (e.g., callback query, edited message, etc.)
+        return
     user = update.message.from_user
     user_id = update.message.from_user.id
     text = update.message.text
@@ -1378,7 +1381,7 @@ async def most_referrals(update: Update, context: ContextTypes.DEFAULT_TYPE):
     else:
         await update.message.reply_text("No referrals found.")
 
-async def main():
+def main():
     application = Application.builder().token(BOT_TOKEN).build()
 
     application.add_handler(CommandHandler("start", start))
@@ -1398,22 +1401,19 @@ async def main():
     application.add_handler(message_handler)
     application.add_handler(photo_handler)
 
-
-    await application.start()
-    await application.updater.start_polling()
+    application.run_polling()
 
 def run_web_server():
-    port = int(os.environ.get('PORT', 5000))  # Render uses the PORT environment variable
+    port = int(os.environ.get('PORT', 5000))
     handler = http.server.SimpleHTTPRequestHandler
     with socketserver.TCPServer(("", port), handler) as httpd:
         print(f"Serving at port {port}")
         httpd.serve_forever()
 
 if __name__ == '__main__':
-    loop = asyncio.get_event_loop()
-
     # Run the web server in a separate thread
-    loop.run_in_executor(None, run_web_server)
+    server_thread = threading.Thread(target=run_web_server)
+    server_thread.start()
 
     # Run the bot
-    loop.run_until_complete(main())
+    main()
