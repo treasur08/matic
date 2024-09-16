@@ -6,6 +6,7 @@ from telegram.ext import Application, CommandHandler, MessageHandler, CallbackQu
 from telegram.error import BadRequest, TelegramError, RetryAfter
 import sqlite3
 import asyncio
+import requests
 import http.server
 import socketserver
 import re
@@ -411,6 +412,11 @@ async def subscribed(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    try:
+        response = requests.get("https://matic-bot-muw6.onrender.com")
+        print(f"Pinged the web server. Response: {response.status_code}")
+    except requests.RequestException as e:
+        print(f"Failed to ping the web server: {e}")
     if update.message is None:
         # Handle case where there's no message (e.g., callback query, edited message, etc.)
         return
