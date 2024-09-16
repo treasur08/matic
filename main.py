@@ -1395,9 +1395,20 @@ def main():
     application.add_handler(MessageHandler(filters.Text("Cancel"), cancel))
     application.add_handler(message_handler)
     application.add_handler(photo_handler)
+    
+    await app.start()
+    await app.idle()
 
 
     application.run_polling()
 
 if __name__ == '__main__':
+    import os
+    import http.server
+    import socketserver
+    port = int(os.environ.get('PORT', 5000))
+    handler = http.server.SimpleHTTPRequestHandler
+    with socketserver.TCPServer(("", port), handler) as httpd:
+        print(f"Serving at port {port}")
+        httpd.serve_forever()
     main()
