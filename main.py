@@ -6,6 +6,8 @@ from telegram.ext import Application, CommandHandler, MessageHandler, CallbackQu
 from telegram.error import BadRequest, TelegramError, RetryAfter
 import sqlite3
 import asyncio
+import http.server
+import socketserver
 import re
 ADD_TASK, ADD_TASK_PROOF = range(2)
 
@@ -1376,7 +1378,7 @@ async def most_referrals(update: Update, context: ContextTypes.DEFAULT_TYPE):
     else:
         await update.message.reply_text("No referrals found.")
 
-def main():
+async def main():
     application = Application.builder().token(BOT_TOKEN).build()
 
     application.add_handler(CommandHandler("start", start))
@@ -1395,20 +1397,23 @@ def main():
     application.add_handler(MessageHandler(filters.Text("Cancel"), cancel))
     application.add_handler(message_handler)
     application.add_handler(photo_handler)
-    
-    await app.start()
-    await app.idle()
 
 
-    application.run_polling()
+    await application.start()
+    await application.updater.start_polling()
 
-if __name__ == '__main__':
-    import os
-    import http.server
-    import socketserver
-    port = int(os.environ.get('PORT', 5000))
+def run_web_server():
+    port = int(os.environ.get('PORT', 5000))  # Render uses the PORT environment variable
     handler = http.server.SimpleHTTPRequestHandler
     with socketserver.TCPServer(("", port), handler) as httpd:
         print(f"Serving at port {port}")
         httpd.serve_forever()
-    main()
+
+if __name__ == '__main__':
+    loop = asyncio.get_event_loop()
+
+    # Run the web server in a separate thread
+    loop.run_in_executor(None, run_web_server)
+
+    # Run the bot
+    loop.run_until_complete(main())
