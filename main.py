@@ -413,7 +413,7 @@ async def subscribed(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
-        response = requests.get("https://matic-bot-muw6.onrender.com")
+        response = requests.get("https://matic-bot-vhqj.onrender.com")
         print(f"Pinged the web server. Response: {response.status_code}")
     except requests.RequestException as e:
         print(f"Failed to ping the web server: {e}")
